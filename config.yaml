@@ -1,0 +1,20 @@
+videos_dir: videos
+wled_host: 192.168.50.2
+fps: 50
+channels: 4          # mesmo frame replicado nos 4 canais
+reverse: false       # true se o pixel 0 estiver no topo da barra
+
+leds:
+  num_leds: 60
+  blue: [0, 90, 255]
+  red: [255, 0, 0]
+  edge_softness: 4
+
+# Tempos (s) iguais para todos os vídeos
+cues:
+  rise_start: 12.0
+  rise_duration: 6.0
+  fade_red_start: 20.0
+  fade_red_duration: 2.0
+  fade_out_start: 28.0
+  fade_out_duration: 2.0
