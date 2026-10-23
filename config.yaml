@@ -18,5 +18,5 @@ leds:
 cues:
   rise_start: 0.0
   rise_duration: 6.0
-  fall_start: 10.0
-  fall_duration: 6.0
+  fall_start: 20.0
+  fall_duration: 4.0
