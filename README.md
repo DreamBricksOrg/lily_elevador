@@ -42,7 +42,10 @@ Em `~/.config/labwc/autostart`:
 ```
 Log em `/tmp/lily.log`. Para parar: `pkill -f player.py`.
 
-Com IP fixo no WLED não é preciso `dnsmasq` (`sudo systemctl disable --now dnsmasq`).
+## Como está configurado no Pi
+
+- `dnsmasq` só como DHCP na eth0 (`/etc/dnsmasq.d/leds.conf`), reservando 192.168.50.2 para o MAC da QuinLED (`dhcp-host=<MAC>,192.168.50.2`). Se trocar a placa, troque o MAC.
+- WLED: 4 saídas WS281x (GPIO 16, 3, 1, 4) de 60 LEDs, 240 no total. Backup da config original em `~/wled-cfg-backup.json`.
 
 ## Estrutura
 
