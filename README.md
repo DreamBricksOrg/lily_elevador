@@ -40,7 +40,7 @@ Em `~/.config/labwc/autostart`:
 ```
 (sleep 5; cd /home/db/prj/lily_elevador && exec python3 player.py >> /tmp/lily.log 2>&1) &
 ```
-Log em `/tmp/lily.log`. Para parar: `pkill -f player.py`.
+Log em `/tmp/lily.log`. Para reiniciar (depois de editar o `config.yaml` ou dar `git pull`): `./restart.sh`. Para parar: `pkill -f "^python3 player.py"`.
 
 ## Como está configurado no Pi
 
