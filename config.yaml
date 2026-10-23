@@ -19,4 +19,6 @@ cues:
   rise_start: 0.0
   rise_duration: 6.0
   fall_start: 20.0
+  fall_mode: wave      # wave = desce em onda (usa fall_duration)
+                       # cut  = troca seca para o vermelho em fall_start (fall_duration ignorado)
   fall_duration: 4.0

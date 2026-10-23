@@ -36,7 +36,8 @@ Os LEDs nunca apagam: o padrão é vermelho estático. Pixel 0 é a base da barr
 | Vermelho | início do vídeo | vermelho estático |
 | Subida | `rise_start` | o azul sobe da base ao topo como uma onda leve (frente em gradiente de `edge_softness` LEDs, com ondulação senoidal), cobrindo o vermelho |
 | Azul | fim da subida até `fall_start` | tudo azul |
-| Descida | `fall_start` | o azul desce do topo à base, revelando o vermelho |
+| Descida (`fall_mode: wave`) | `fall_start` | o azul desce do topo à base em onda, durante `fall_duration`, revelando o vermelho |
+| Corte (`fall_mode: cut`) | `fall_start` | troca seca: todos os LEDs voltam ao vermelho instantaneamente (`fall_duration` ignorado) |
 | Vermelho | fim da descida | vermelho estático até o fim do vídeo |
 
 ## Configuração (`config.yaml`)

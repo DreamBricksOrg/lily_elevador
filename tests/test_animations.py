@@ -47,6 +47,31 @@ class AnimTests(unittest.TestCase):
         self.assertEqual(len(to_bytes(render(15, CFG))), 180)
 
 
+CUT = AnimConfig(fall_mode="cut")
+
+
+class CutTests(unittest.TestCase):
+    def test_blue_until_fall_start(self):
+        self.assertTrue(all(p == CUT.blue for p in render(CUT.fall_start - 0.01, CUT)))
+
+    def test_instant_switch_to_red(self):
+        self.assertTrue(all(p == CUT.red for p in render(CUT.fall_start, CUT)))
+        self.assertTrue(all(p == CUT.red for p in render(CUT.fall_start + 0.01, CUT)))
+
+    def test_no_gradient_during_cut(self):
+        for t in (CUT.fall_start - 0.5, CUT.fall_start + 0.5):
+            f = render(t, CUT)
+            self.assertTrue(all(p in (CUT.red, CUT.blue) for p in f))
+
+    def test_rise_still_wave(self):
+        f = render(CUT.rise_start + CUT.rise_duration / 2, CUT)
+        self.assertGreater(len([p for p in f if p not in (CUT.red, CUT.blue)]), 0)
+
+    def test_invalid_mode_rejected(self):
+        with self.assertRaises(ValueError):
+            AnimConfig(fall_mode="fade")
+
+
 class DDPTests(unittest.TestCase):
     def test_header(self):
         p = build_packet(b"\x01\x02\x03", seq=3, offset=0)
