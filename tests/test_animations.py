@@ -4,36 +4,44 @@ from leds.animations import AnimConfig, render, to_bytes
 from leds.ddp import build_packet
 
 CFG = AnimConfig()
+MID_RISE = CFG.rise_start + CFG.rise_duration / 2
+HOLD = (CFG.rise_start + CFG.rise_duration + CFG.fall_start) / 2
+END = CFG.fall_start + CFG.fall_duration + 1
 
 
 class AnimTests(unittest.TestCase):
-    def test_off_before_first_cue(self):
-        self.assertTrue(all(p == (0, 0, 0) for p in render(0, CFG)))
+    def test_red_before_rise(self):
+        self.assertTrue(all(p == CFG.red for p in render(0, CFG)))
 
     def test_rise_goes_bottom_up(self):
-        f = render(CFG.rise_start + CFG.rise_duration / 2, CFG)
-        self.assertGreater(f[0][2], 0)
-        self.assertEqual(f[-1], (0, 0, 0))
-        self.assertGreaterEqual(f[0][2], f[30][2])
+        f = render(MID_RISE, CFG)
+        self.assertGreater(f[0][2], f[-1][2])  # base mais azul que o topo
+        self.assertEqual(f[0], CFG.blue)
+        self.assertEqual(f[-1], CFG.red)
 
-    def test_full_blue_at_end_of_rise(self):
-        f = render(CFG.fade_red_start - 0.1, CFG)
-        self.assertTrue(all(p == CFG.blue for p in f))
+    def test_never_off(self):
+        for t in range(0, 60):
+            for px in render(t, CFG):
+                self.assertGreater(sum(px), 0)
 
-    def test_solid_red_after_fade(self):
-        f = render(CFG.fade_red_start + CFG.fade_red_duration + 1, CFG)
-        self.assertTrue(all(p == CFG.red for p in f))
+    def test_full_blue_during_hold(self):
+        self.assertTrue(all(p == CFG.blue for p in render(HOLD, CFG)))
 
-    def test_fade_midpoint_is_mixed(self):
-        r, g, b = render(CFG.fade_red_start + CFG.fade_red_duration / 2, CFG)[0]
-        self.assertTrue(0 < r < 255 and 0 < b < 255)
+    def test_fall_goes_top_down(self):
+        f = render(CFG.fall_start + CFG.fall_duration / 2, CFG)
+        self.assertEqual(f[-1], CFG.red)   # topo já voltou ao vermelho
+        self.assertEqual(f[0], CFG.blue)   # base ainda azul
 
-    def test_off_after_fade_out(self):
-        f = render(CFG.fade_out_start + CFG.fade_out_duration + 1, CFG)
-        self.assertTrue(all(p == (0, 0, 0) for p in f))
+    def test_red_after_fall(self):
+        self.assertTrue(all(p == CFG.red for p in render(END, CFG)))
+
+    def test_front_is_gradient(self):
+        f = render(MID_RISE, CFG)
+        mixed = [p for p in f if p not in (CFG.red, CFG.blue)]
+        self.assertGreater(len(mixed), 0)
 
     def test_loop_reset(self):
-        self.assertEqual(render(0.5, CFG), render(0.0, CFG))
+        self.assertTrue(all(p == CFG.red for p in render(0.5, CFG)))
 
     def test_bytes_length(self):
         self.assertEqual(len(to_bytes(render(15, CFG))), 180)

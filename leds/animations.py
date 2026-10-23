@@ -1,7 +1,9 @@
 """Animações puras: render(video_time, cfg) -> lista de (r, g, b) por LED.
 
 Pixel 0 é a base da barra. Sem I/O, testável sem hardware.
+Padrão vermelho; o azul sobe como uma onda leve, fica, e desce.
 """
+import math
 from dataclasses import dataclass
 
 Color = tuple
@@ -12,13 +14,14 @@ class AnimConfig:
     num_leds: int = 60
     rise_start: float = 12.0
     rise_duration: float = 6.0
-    fade_red_start: float = 20.0
-    fade_red_duration: float = 2.0
-    fade_out_start: float = 28.0
-    fade_out_duration: float = 2.0
+    fall_start: float = 24.0
+    fall_duration: float = 6.0
     blue: Color = (0, 90, 255)
     red: Color = (255, 0, 0)
-    edge_softness: float = 4.0  # LEDs de gradiente na borda da água
+    edge_softness: float = 6.0   # LEDs de gradiente na frente da onda
+    wave_amplitude: float = 2.0  # ondulação da frente, em LEDs
+    wave_length: float = 14.0    # comprimento da ondulação, em LEDs
+    wave_speed: float = 0.6      # ciclos por segundo
 
 
 def _clamp01(x):
@@ -35,37 +38,24 @@ def _lerp(a, b, p):
     return tuple(a[i] + (b[i] - a[i]) * p for i in range(3))
 
 
-def _scale(c, k):
-    return tuple(v * k for v in c)
-
-
-def _water(level, color, cfg):
-    """Preenche de 0 até `level` (em LEDs), com borda suave no topo."""
-    pixels = []
-    for i in range(cfg.num_leds):
-        # cobertura do LED i: 1 abaixo da borda, cai linear até 0
-        cover = _clamp01((level - i) / max(cfg.edge_softness, 1e-6)) if level < cfg.num_leds else 1.0
-        pixels.append(_scale(color, cover))
-    return pixels
-
-
 def render(t, cfg):
     """Frame para o instante `t` (segundos do vídeo). Função só do tempo."""
     n = cfg.num_leds
-    if t < cfg.rise_start:
-        return [(0, 0, 0)] * n
+    # fração de azul: 0 (tudo vermelho) -> 1 (tudo azul) -> 0
+    wet = min(_progress(t, cfg.rise_start, cfg.rise_duration),
+              1.0 - _progress(t, cfg.fall_start, cfg.fall_duration))
 
-    rise_p = _progress(t, cfg.rise_start, cfg.rise_duration)
-    # a água sobe até cobrir também a borda suave
-    level = rise_p * (n + cfg.edge_softness)
+    # margem para a frente da onda sair totalmente da barra nos dois extremos
+    margin = cfg.edge_softness + cfg.wave_amplitude
+    level = -margin + wet * (n + 2 * margin)
 
-    fade_p = _progress(t, cfg.fade_red_start, cfg.fade_red_duration)
-    color = _lerp(cfg.blue, cfg.red, fade_p)
-
-    out_p = _progress(t, cfg.fade_out_start, cfg.fade_out_duration)
-    color = _scale(color, 1.0 - out_p)
-
-    return _water(level, color, cfg)
+    pixels = []
+    for i in range(n):
+        ripple = cfg.wave_amplitude * math.sin(
+            2 * math.pi * (i / cfg.wave_length - cfg.wave_speed * t))
+        cover = _clamp01((level - i + ripple) / cfg.edge_softness)
+        pixels.append(_lerp(cfg.red, cfg.blue, cover))
+    return pixels
 
 
 def to_bytes(pixels):

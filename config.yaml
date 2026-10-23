@@ -8,13 +8,15 @@ leds:
   num_leds: 60
   blue: [0, 90, 255]
   red: [255, 0, 0]
-  edge_softness: 4
+  edge_softness: 6     # LEDs de gradiente na frente da onda
+  wave_amplitude: 2    # ondulação da frente (LEDs)
+  wave_length: 14      # comprimento da ondulação (LEDs)
+  wave_speed: 0.6      # ciclos por segundo
 
-# Tempos (s) iguais para todos os vídeos
+# Tempos (s) iguais para todos os vídeos.
+# Entre o fim da subida e o fall_start o azul fica parado cobrindo tudo.
 cues:
   rise_start: 12.0
   rise_duration: 6.0
-  fade_red_start: 20.0
-  fade_red_duration: 2.0
-  fade_out_start: 28.0
-  fade_out_duration: 2.0
+  fall_start: 24.0
+  fall_duration: 6.0

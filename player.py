@@ -75,7 +75,7 @@ def main(config_path="config.yaml"):
     except KeyboardInterrupt:
         pass
     finally:
-        sender.send(bytes(anim.num_leds * 3 * raw["channels"]))  # apaga
+        sender.send(to_bytes(render(0, anim)) * raw["channels"])  # volta ao vermelho
         sender.close()
         lp.stop()
 

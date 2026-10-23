@@ -29,31 +29,33 @@ player.py
 
 ## Animações
 
-Pixel 0 é a base da barra (`reverse: true` inverte).
+Os LEDs nunca apagam: o padrão é vermelho estático. Pixel 0 é a base da barra (`reverse: true` inverte).
 
 | Fase | Início | Efeito |
 |---|---|---|
-| Apagado | início do vídeo | todos os LEDs apagados |
-| Subida | `rise_start` | azul, como água subindo da base ao topo, com borda suave de `edge_softness` LEDs |
-| Fade para vermelho | `fade_red_start` | interpolação linear azul -> vermelho, depois vermelho sólido |
-| Fade out | `fade_out_start` | vermelho escurece até apagar totalmente, e permanece apagado |
+| Vermelho | início do vídeo | vermelho estático |
+| Subida | `rise_start` | o azul sobe da base ao topo como uma onda leve (frente em gradiente de `edge_softness` LEDs, com ondulação senoidal), cobrindo o vermelho |
+| Azul | fim da subida até `fall_start` | tudo azul |
+| Descida | `fall_start` | o azul desce do topo à base, revelando o vermelho |
+| Vermelho | fim da descida | vermelho estático até o fim do vídeo |
 
 ## Configuração (`config.yaml`)
 
 - `videos_dir`, `wled_host`, `fps`, `channels`, `reverse`.
 - `leds`: `num_leds` (60), `blue`, `red`, `edge_softness`.
-- `cues`: início e duração de cada fase, comuns a todos os vídeos.
+- `cues`: `rise_start`, `rise_duration`, `fall_start`, `fall_duration`, comuns a todos os vídeos. O tempo parado em azul é a diferença entre `fall_start` e o fim da subida.
+- `leds` também define `wave_amplitude`, `wave_length` e `wave_speed` da onda.
 
 ## Tratamento de erros
 
 - Sem vídeos em `videos_dir`: encerra com mensagem.
-- Sem mídia carregada: tempo 0, LEDs apagados.
-- Ao encerrar (Ctrl+C): envia frame preto e para o VLC.
+- Sem mídia carregada: tempo 0, LEDs vermelhos.
+- Ao encerrar (Ctrl+C): envia frame vermelho e para o VLC.
 - UDP é sem conexão: se a QuinLED estiver fora do ar, o player continua rodando.
 
 ## Testes
 
-Testes unitários (`unittest`) cobrem as animações como funções puras (apagado antes do primeiro cue, subida de baixo para cima, azul total no fim da subida, vermelho sólido, fade intermediário, apagado no fim, reset no loop, tamanho do buffer) e o cabeçalho DDP. Não há teste automatizado de VLC nem de hardware.
+Testes unitários (`unittest`) cobrem as animações como funções puras (vermelho antes da subida, subida de baixo para cima, LEDs nunca apagam, azul total no meio, descida de cima para baixo, vermelho no fim, frente em gradiente, reset no loop, tamanho do buffer) e o cabeçalho DDP. Não há teste automatizado de VLC nem de hardware.
 
 ## Fora de escopo
 
