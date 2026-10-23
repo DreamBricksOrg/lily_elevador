@@ -45,6 +45,7 @@ Log em `/tmp/lily.log`. Para parar: `pkill -f player.py`.
 ## Como está configurado no Pi
 
 - `dnsmasq` só como DHCP na eth0 (`/etc/dnsmasq.d/leds.conf`), reservando 192.168.50.2 para o MAC da QuinLED (`dhcp-host=<MAC>,192.168.50.2`). Se trocar a placa, troque o MAC.
+- Tela na vertical (9:16): `~/.config/kanshi/config` com `output HDMI-A-1 enable mode 1920x1080@60Hz transform 90`. Se a imagem ficar de cabeça para baixo, use `transform 270` e `pkill -HUP -x kanshi`.
 - WLED: 4 saídas WS281x (GPIO 16, 3, 1, 4) de 60 LEDs, 240 no total. Backup da config original em `~/wled-cfg-backup.json`.
 
 ## Estrutura
