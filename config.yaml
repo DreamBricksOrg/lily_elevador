@@ -16,7 +16,7 @@ leds:
 # Tempos (s) iguais para todos os vídeos.
 # Entre o fim da subida e o fall_start o azul fica parado cobrindo tudo.
 cues:
-  rise_start: 12.0
+  rise_start: 0.0
   rise_duration: 6.0
-  fall_start: 24.0
+  fall_start: 10.0
   fall_duration: 6.0

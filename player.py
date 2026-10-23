@@ -69,13 +69,19 @@ def main(config_path="config.yaml"):
             pixels = render(clock.now(), anim)
             if raw.get("reverse"):
                 pixels = pixels[::-1]
-            sender.send(to_bytes(pixels) * raw["channels"])
+            try:
+                sender.send(to_bytes(pixels) * raw["channels"])
+            except OSError:
+                pass  # QuinLED/cabo fora do ar: o vídeo segue tocando
             next_tick += period
             time.sleep(max(0.0, next_tick - time.monotonic()))
     except KeyboardInterrupt:
         pass
     finally:
-        sender.send(to_bytes(render(0, anim)) * raw["channels"])  # volta ao vermelho
+        try:
+            sender.send(to_bytes(render(0, anim)) * raw["channels"])  # volta ao vermelho
+        except OSError:
+            pass
         sender.close()
         lp.stop()
 

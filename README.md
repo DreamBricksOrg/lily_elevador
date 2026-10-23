@@ -34,19 +34,15 @@ Coloque os vídeos em `videos/`. Ajuste tempos e duração das animações em `c
 - Se a fita ficar com cores trocadas, ajuste a ordem de cor no WLED, não no código.
 - Se a água descer em vez de subir, `reverse: true` em `config.yaml`.
 
-## Autostart (systemd)
+## Autostart (desktop labwc com autologin)
 
-`/etc/systemd/system/lily.service`:
+Em `~/.config/labwc/autostart`:
 ```
-[Service]
-User=pi
-WorkingDirectory=/home/pi/lily_elevador
-Environment=DISPLAY=:0
-ExecStart=/usr/bin/python3 player.py
-Restart=always
-[Install]
-WantedBy=graphical.target
+(sleep 5; cd /home/db/prj/lily_elevador && exec python3 player.py >> /tmp/lily.log 2>&1) &
 ```
+Log em `/tmp/lily.log`. Para parar: `pkill -f player.py`.
+
+Com IP fixo no WLED não é preciso `dnsmasq` (`sudo systemctl disable --now dnsmasq`).
 
 ## Estrutura
 
