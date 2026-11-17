@@ -1,6 +1,7 @@
 """Toca videos em loop no VLC e anima os LEDs (WLED/DDP) em sincronia."""
 import sys
 import time
+import math
 from pathlib import Path
 
 import yaml
@@ -9,13 +10,29 @@ from leds.animations import AnimConfig, render, to_bytes
 from leds.ddp import DDPSender
 
 VIDEO_EXT = {".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v"}
+PHYSICAL_LEDS_PER_PIXEL = 3  # WS2811: cada chip controla um grupo de 3 LEDs
 
 
 def load_config(path):
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    leds = raw["leds"].copy()
+    length_m = float(leds.pop("length_m"))
+    density = float(leds.pop("physical_leds_per_meter"))
+    if not math.isfinite(length_m) or length_m <= 0:
+        raise ValueError("leds.length_m deve ser maior que zero")
+    if not math.isfinite(density) or density <= 0:
+        raise ValueError("leds.physical_leds_per_meter deve ser maior que zero")
+    num_pixels = round(length_m * density / PHYSICAL_LEDS_PER_PIXEL)
+    if num_pixels < 1:
+        raise ValueError("a fita deve conter pelo menos um pixel WS2811")
+    leds["num_leds"] = num_pixels
+    cues = raw["cues"].copy()
+    for key in ("rise_start", "rise_duration", "fall_start", "fall_duration"):
+        if key in cues:
+            cues[key] = float(cues[key])
     anim = AnimConfig(
-        **{**raw["cues"], **raw["leds"],
-           "blue": tuple(raw["leds"]["blue"]), "red": tuple(raw["leds"]["red"])}
+        **{**cues, **leds,
+           "blue": tuple(leds["blue"]), "red": tuple(leds["red"])}
     )
     return raw, anim
 
@@ -25,21 +42,30 @@ class VideoClock:
 
     def __init__(self, player):
         self.player = player
-        self.last_vt = 0.0
+        self.last_vt = None
+        self.last_sample = None
         self.last_mono = time.monotonic()
 
     def now(self):
         ms = self.player.get_time()
         mono = time.monotonic()
         if ms < 0:  # sem mídia
-            self.last_vt, self.last_mono = 0.0, mono
+            self.last_vt, self.last_sample, self.last_mono = None, None, mono
             return 0.0
         vt = ms / 1000.0
-        if vt != self.last_vt:
-            self.last_vt, self.last_mono = vt, mono
-        if self.player.is_playing():
-            return self.last_vt + (mono - self.last_mono)
-        return self.last_vt
+        if self.last_vt is None or not self.player.is_playing():
+            self.last_vt, self.last_sample, self.last_mono = vt, vt, mono
+            return vt
+        estimated = self.last_vt + (mono - self.last_mono)
+        if vt != self.last_sample:
+            # Amostras grossas do VLC podem chegar atrasadas. Só reinicie o
+            # relógio quando houver seek/loop ou um salto real para a frente.
+            if vt < self.last_sample - 0.25 or vt > estimated + 0.25:
+                estimated = vt
+            else:
+                estimated = max(estimated, vt)
+            self.last_vt, self.last_sample, self.last_mono = estimated, vt, mono
+        return estimated
 
 
 def main(config_path="config.yaml"):
@@ -63,10 +89,11 @@ def main(config_path="config.yaml"):
     clock = VideoClock(player)
     sender = DDPSender(raw["wled_host"])
     period = 1.0 / raw["fps"]
+    sync_offset = float(raw.get("sync_offset_seconds", 0.0))
     try:
         next_tick = time.monotonic()
         while True:
-            pixels = render(clock.now(), anim)
+            pixels = render(clock.now() + sync_offset, anim)
             if raw.get("reverse"):
                 pixels = pixels[::-1]
             try:
@@ -74,6 +101,8 @@ def main(config_path="config.yaml"):
             except OSError:
                 pass  # QuinLED/cabo fora do ar: o vídeo segue tocando
             next_tick += period
+            if next_tick < time.monotonic():
+                next_tick = time.monotonic() + period
             time.sleep(max(0.0, next_tick - time.monotonic()))
     except KeyboardInterrupt:
         pass

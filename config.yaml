@@ -3,22 +3,25 @@ wled_host: 192.168.50.2
 fps: 50
 channels: 4          # mesmo frame replicado nos 4 canais
 reverse: false       # true se o pixel 0 estiver no topo da barra
+sync_offset_seconds: 0.0  # positivo adianta os LEDs; negativo atrasa (ex.: 0.125)
 
 leds:
-  num_leds: 60
+  length_m: 2.05
+  physical_leds_per_meter: 60  # confirmado: 20 pixels WS2811 por metro
   blue: [0, 90, 255]
   red: [255, 0, 0]
-  edge_softness: 6     # LEDs de gradiente na frente da onda
-  wave_amplitude: 2    # ondulação da frente (LEDs)
-  wave_length: 14      # comprimento da ondulação (LEDs)
+  edge_softness: 6     # pixels endereçáveis de gradiente na frente da onda
+  wave_amplitude: 2    # ondulação da frente (pixels endereçáveis)
+  wave_length: 14      # comprimento da ondulação (pixels endereçáveis)
   wave_speed: 0.6      # ciclos por segundo
 
-# Tempos (s) iguais para todos os vídeos.
+# Timecodes do vídeo a 30 fps: 0:00:05:02, 0:00:12:21 e 0:00:24:21.
+# Tempos em segundos decimais, iguais para todos os vídeos.
 # Entre o fim da subida e o fall_start o azul fica parado cobrindo tudo.
 cues:
-  rise_start: 0.0
-  rise_duration: 6.0
-  fall_start: 20.0
+  rise_start: 5.066667       # água entra (5 s + 2 quadros)
+  rise_duration: 7.633333    # tela totalmente azul em 12.7 s
+  fall_start: 24.7           # tela volta ao vermelho; vídeo segue até 27.7 s
   fall_mode: cut       # wave = desce em onda (usa fall_duration)
                        # cut  = troca seca para o vermelho em fall_start (fall_duration ignorado)
-  fall_duration: 4.0
+  fall_duration: 0.0

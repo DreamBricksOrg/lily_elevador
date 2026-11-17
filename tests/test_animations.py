@@ -51,6 +51,12 @@ CUT = AnimConfig(fall_mode="cut")
 
 
 class CutTests(unittest.TestCase):
+    def test_fractional_fall_trigger(self):
+        cfg = AnimConfig(rise_start=0.125, rise_duration=5.875,
+                         fall_start=20.375, fall_mode="cut")
+        self.assertTrue(all(p == cfg.blue for p in render(20.374, cfg)))
+        self.assertTrue(all(p == cfg.red for p in render(20.375, cfg)))
+
     def test_blue_until_fall_start(self):
         self.assertTrue(all(p == CUT.blue for p in render(CUT.fall_start - 0.01, CUT)))
 
