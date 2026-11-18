@@ -2,7 +2,7 @@ videos_dir: videos
 wled_host: 192.168.50.2
 fps: 50
 channels: 4          # mesmo frame replicado nos 4 canais
-reverse: false       # true se o pixel 0 estiver no topo da barra
+reverse: true        # animação no sentido reverso
 sync_offset_seconds: 0.0  # positivo adianta os LEDs; negativo atrasa (ex.: 0.125)
 
 leds:
