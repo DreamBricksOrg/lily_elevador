@@ -12,6 +12,8 @@ python -m unittest discover -s tests -t .
 
 Os vídeos `video_elevador__v5_1.mp4`, `video_elevador__v5_2.mp4` e `video_elevador__v5_3.mp4` ficam em `videos/` e são tocados nessa ordem, em loop. Todos têm 30 fps e 27,7 s. Ajuste tempos e duração das animações em `config.yaml` (iguais para todos os vídeos). Os gatilhos aceitam segundos decimais. `0:00:05:02` vira `rise_start: 5.066667`, `0:00:12:21` marca o fim da subida em `12.7` s (`rise_duration: 7.633333`) e `0:00:24:21` vira `fall_start: 24.7`; o vídeo permanece mais 3 s com a tela vermelha.
 
+Os arquivos em `videos/` foram recodificados para o Pi em H.264, 1080×1920, 30 fps (`libx264 -preset veryfast -crf 18`, áudio preservado). No Pi, o original `v5_1` de cerca de 12,6 Mb/s exibia aproximadamente 15 quadros/s; a versão recodificada exibiu 30 quadros/s ao longo de um ciclo completo.
+
 Em `leds.length_m`, informe o comprimento real **de cada tira**, em metros. Em `leds.physical_leds_per_meter`, informe a densidade de LEDs físicos indicada para a fita. O programa divide por 3 porque cada chip WS2811 controla um grupo de 3 LEDs: com os 2,05 m e 60 LEDs físicos/m confirmados, cada tira tem 41 pixels endereçáveis. O mesmo quadro é enviado às 4 saídas.
 
 `sync_offset_seconds` faz o ajuste fino da sincronia: valor positivo adianta os LEDs em relação ao vídeo; valor negativo atrasa. Comece em `0.0` e ajuste em passos pequenos, por exemplo `0.050`. O relógio interpola o tempo do VLC sem recuar em atualizações atrasadas e reinicia ao detectar seek ou loop.
