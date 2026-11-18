@@ -50,10 +50,10 @@ Log em `/tmp/lily.log`. Para reiniciar (depois de editar o `config.yaml` ou dar 
 
 - `dnsmasq` só como DHCP na eth0 (`/etc/dnsmasq.d/leds.conf`), reservando 192.168.50.2 para o MAC da QuinLED (`dhcp-host=<MAC>,192.168.50.2`). Se trocar a placa, troque o MAC.
 - Tela na vertical (9:16): `~/.config/kanshi/config` com `output HDMI-A-1 enable mode 1920x1080@60Hz transform 90`. Se a imagem ficar de cabeça para baixo, use `transform 270` e `pkill -HUP -x kanshi`.
-- WLED foi configurado historicamente com 4 saídas WS281x (GPIO 16, 3, 1, 4) de 60 pixels, 240 no total. Ao adotar a configuração por metros, atualize **também** o comprimento e os índices de cada saída no WLED para o valor calculado; caso contrário, o quadro replicado ficará desalinhado. Backup da config original em `~/wled-cfg-backup.json`.
+- WLED ligado ao Pi: 4 saídas WS281x (GPIO 16, 3, 1, 4), com 41 pixels cada e inícios em 0, 41, 82 e 123 (164 no total). A configuração anterior de 60 pixels por saída foi preservada em um backup fora do repositório.
 
 ## Estrutura
 
 - `leds/animations.py`: `render(video_time, cfg)`, função pura do tempo (seek/loop não dessincronizam).
 - `leds/ddp.py`: envio DDP/UDP.
-- `player.py`: VLC + relógio interpolado + loop de 50 Hz e compensação de latência configurável.
+- `player.py`: VLC + relógio interpolado + loop de 50 Hz e compensação de latência configurável. No Pi, o VLC mantinha o último quadro por cerca de 27 s após o fim de cada arquivo; o player avança explicitamente ao fim da mídia.
