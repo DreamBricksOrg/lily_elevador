@@ -68,6 +68,26 @@ class VideoClock:
         return estimated
 
 
+class PlaylistAdvancer:
+    """Contorna o VLC quando ele mantém o último quadro após o fim da mídia."""
+
+    def __init__(self, player, list_player):
+        self.player = player
+        self.list_player = list_player
+        self.armed = False
+
+    def tick(self):
+        ms = self.player.get_time()
+        length = self.player.get_length()
+        if ms < 0 or length <= 0:
+            return
+        if ms < length - 1000:
+            self.armed = True
+        elif self.armed and ms >= length - 20:
+            self.armed = False
+            self.list_player.next()
+
+
 def main(config_path="config.yaml"):
     import vlc
 
@@ -87,12 +107,14 @@ def main(config_path="config.yaml"):
     lp.play()
 
     clock = VideoClock(player)
+    advancer = PlaylistAdvancer(player, lp)
     sender = DDPSender(raw["wled_host"])
     period = 1.0 / raw["fps"]
     sync_offset = float(raw.get("sync_offset_seconds", 0.0))
     try:
         next_tick = time.monotonic()
         while True:
+            advancer.tick()
             pixels = render(clock.now() + sync_offset, anim)
             if raw.get("reverse"):
                 pixels = pixels[::-1]

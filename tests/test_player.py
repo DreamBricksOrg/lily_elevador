@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import yaml
 
-from player import VideoClock, load_config
+from player import PlaylistAdvancer, VideoClock, load_config
 
 
 class ConfigTests(unittest.TestCase):
@@ -78,6 +78,38 @@ class VideoClockTests(unittest.TestCase):
             clock.now()
             clock.now()
             self.assertAlmostEqual(clock.now(), 0.2)
+
+
+class PlaylistAdvancerTests(unittest.TestCase):
+    def test_advances_once_at_end_then_rearms_for_next_video(self):
+        class Player:
+            time_ms = 0
+
+            def get_time(self):
+                return self.time_ms
+
+            def get_length(self):
+                return 27733
+
+        class ListPlayer:
+            calls = 0
+
+            def next(self):
+                self.calls += 1
+                return 0
+
+        player = Player()
+        playlist = ListPlayer()
+        advancer = PlaylistAdvancer(player, playlist)
+        for time_ms in (0, 27000, 27750, 27750, 27750):
+            player.time_ms = time_ms
+            advancer.tick()
+        self.assertEqual(playlist.calls, 1)
+
+        for time_ms in (0, 500, 27750):
+            player.time_ms = time_ms
+            advancer.tick()
+        self.assertEqual(playlist.calls, 2)
 
 
 if __name__ == "__main__":
